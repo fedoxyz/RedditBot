@@ -1,0 +1,5 @@
+selenium
+setuptools
+blinker==1.7.0
+undetected-chromedriver
+colorama
