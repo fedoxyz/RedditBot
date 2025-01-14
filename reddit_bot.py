@@ -1,29 +1,38 @@
-import undetected_chromedriver as uc
-
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.wait import WebDriverWait
-
 from selenium.webdriver.support import expected_conditions as EC
 
 import undetected_chromedriver as  uc
+
+from utils import parse_account, wait, find_in_shadow, get_options, parse_cookies 
 
 from logger import logger
 
 
 class RedditBot:
-    def __init__(self, username="", password=""):
+    def __init__(self, username):
         self.username = username
-        self.password = password
+        self.password = "123"
+        self.cookies, self.proxy = parse_account(username)
+        self.cookies = parse_cookies(self.cookies)
+        
 
-        self.driver = uc.Chrome(headless=False,use_subprocess=False, options=self.get_options())
+        options = get_options(self.proxy)
+        self.driver = uc.Chrome(headless=False,use_subprocess=False, options=options)
+
+        for cookie in self.cookies:
+            self.driver.add_cookie(cookie)
+    
+    def login_cookies(self):
+        reddit_login_l = "https://www.reddit.com/login/"
 
     def login_password(self):
         reddit_login_l = "https://www.reddit.com/login/"
 
         self.driver.get(reddit_login_l)
         
-        wait_10 = self.wait_10()
+        wait_10 = wait(self.driver, 10)
 
         username_input = wait_10.until(EC.visibility_of_element_located((By.ID, 'login-username')))
         password_input = wait_10.until(EC.visibility_of_element_located((By.ID, 'login-password')))
@@ -56,7 +65,7 @@ class RedditBot:
         else:
             comment_l = f"https://www.reddit.com/r/{reddit_name}/comments/{post_id}/"
 
-        wait_10 = self.wait_10()
+        wait_10 = wait(self.driver, 10)
          
         self.driver.switch_to.window(self.driver.window_handles[-1])
         self.driver.get(comment_l)
@@ -93,7 +102,7 @@ class RedditBot:
 
     def create_post(self, reddit_name, title, body):
         create_post_url = f"https://www.reddit.com/r/{reddit_name}/submit/?type=TEXT"
-        wait_10 = self.wait_10()
+        wait_10 = wait(self.driver, 10)
         
         # Switch to last tab and navigate to URL
         self.driver.switch_to.window(self.driver.window_handles[-1])
@@ -124,20 +133,6 @@ class RedditBot:
         post_button.click()
 
     
-    @staticmethod
-    def get_options():
-        options = Options()
-        options.add_argument('--start-maximized')
-        options.add_argument("--window-size=1440,900")
-        options.add_argument('--no-sandbox')
-        options.add_argument('--disable-dev-shm-usage')
-        chrome_path = '/usr/bin/google-chrome-stable'
-        options.binary_location = chrome_path
-
-        return options
-
-    def wait_10(self):
-        return WebDriverWait(self.driver, 10)
 
 
 
