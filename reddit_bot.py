@@ -5,27 +5,22 @@ from selenium.webdriver.support import expected_conditions as EC
 
 import undetected_chromedriver as  uc
 
-from utils import parse_account, wait, find_in_shadow, get_options, parse_cookies 
+from utils import parse_account, wait, find_in_shadow, get_options 
 
 from logger import logger
 
-
 class RedditBot:
     def __init__(self, username):
-        self.username = username
-        self.password = "123"
-        self.cookies, self.proxy = parse_account(username)
-        self.cookies = parse_cookies(self.cookies)
-        
+        self.cookies, self.proxy, self.username, self.password = parse_account(username)
 
         options = get_options(self.proxy)
-        self.driver = uc.Chrome(headless=False,use_subprocess=False, options=options)
-
-        for cookie in self.cookies:
-            self.driver.add_cookie(cookie)
+        self.driver = uc.Chrome(headless=False, use_subprocess=False, options=options)
     
     def login_cookies(self):
-        reddit_login_l = "https://www.reddit.com/login/"
+        reddit_l = "https://www.reddit.com"
+        self.driver.get(reddit_l)
+        for cookie in self.cookies:
+            self.driver.add_cookie(cookie)
 
     def login_password(self):
         reddit_login_l = "https://www.reddit.com/login/"
@@ -69,6 +64,7 @@ class RedditBot:
          
         self.driver.switch_to.window(self.driver.window_handles[-1])
         self.driver.get(comment_l)
+
         if is_reply:
             comment = wait_10.until(EC.presence_of_element_located((
                 By.CSS_SELECTOR, "shreddit-comment"

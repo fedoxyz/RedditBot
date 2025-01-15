@@ -2,6 +2,7 @@ import zipfile
 
 
 def proxies(username, password, endpoint, port):
+    print(endpoint)
     manifest_json = """
     {
         "version": "1.0.0",

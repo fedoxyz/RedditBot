@@ -4,3 +4,4 @@ test.py
 accounts/*.txt
 **/__pycache__/
 *.zip
+proxies_extension
