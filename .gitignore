@@ -1,6 +1,5 @@
 venv
 *.log
-test.py
 accounts/*.txt
 **/__pycache__/
 *.zip
