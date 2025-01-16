@@ -1,7 +1,8 @@
 import logging
 from colorama import Fore, Style, init
+import os
 
-from config import IS_DEBUG
+from config import DEBUG
 
 # Initialize colorama for cross-platform compatibility
 init(autoreset=True)
@@ -22,6 +23,8 @@ class CustomFormatter(logging.Formatter):
             record.msg = f"{Fore.YELLOW}{record.msg}{Style.RESET_ALL}"
         return super().format(record)
 
+os.makedirs('logs', exist_ok=True)
+
 # Create a file handler to write logs to a file
 file_handler = logging.FileHandler('logs/app.log')
 file_handler.setLevel(logging.DEBUG)
@@ -30,7 +33,7 @@ file_handler.setFormatter(file_formatter)
 
 # Create a stream handler to print logs to the console
 console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.DEBUG if IS_DEBUG else logging.INFO)
+console_handler.setLevel(logging.DEBUG if DEBUG else logging.INFO)
 
 # Use the custom formatter for the console output
 console_formatter = CustomFormatter('%(asctime)s - %(levelname)s - %(message)s')

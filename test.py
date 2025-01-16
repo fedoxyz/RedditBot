@@ -59,7 +59,7 @@ login_button.click()
 
 
 # COMMENT REPLY
-comment_l = 'https://www.reddit.com/r/castaneda/comments/1hyu5vm/comment/m6kgus0/'
+comment_l = ''
 
 driver.switch_to.window(driver.window_handles[-1])
 driver.get(comment_l)
@@ -98,4 +98,14 @@ upvote_button = find_in_shadow(driver, 'button[rpl][aria-pressed="false"]', comm
 
 
 
+from config import CLIENT_ID, CLIENT_SECRET, USER_AGENT
+from reddit_api import RedditAPI
+from comments_monitor import RedditCommentMonitor
 
+reddit_api = RedditAPI(CLIENT_ID, CLIENT_SECRET, USER_AGENT)
+
+monitor = RedditCommentMonitor(reddit_api)
+
+monitor.start_monitoring("")
+
+monitor.get_comments()
