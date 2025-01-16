@@ -1,7 +1,7 @@
 import time
 from typing import List, Set
 from threading import Thread
-from config import Comment
+from comment import Comment
 
 class RedditCommentMonitor:
     def __init__(self, reddit_api):
