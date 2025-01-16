@@ -11,14 +11,14 @@ from selenium.webdriver.support import expected_conditions as EC
 
 import undetected_chromedriver as  uc
 
-from utils import parse_account, parse_cookies, get_options, wait, set_cookies
+from utils import parse_account, parse_cookies, get_options, wait, set_cookies, find_in_shadow, find_in_specific_shadow
 
 #from logger import logger
 
 
 cookies, proxy, username, password = parse_account("user")
 
-options = get_options(proxy)
+options = get_options()
 
 driver = uc.Chrome(headless=False,use_subprocess=False, options=options)
 
@@ -90,6 +90,12 @@ submit_button = comment.find_element(By.XPATH,
     ".//button[@slot='submit-button'][.//span[contains(text(), 'Comment')]]"
 )
 submit_button.click()
+
+
+
+
+upvote_button = find_in_shadow(driver, 'button[rpl][aria-pressed="false"]', comment)
+
 
 
 

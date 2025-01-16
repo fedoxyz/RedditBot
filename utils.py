@@ -5,7 +5,7 @@ from proxy import proxies
 import os, sys, zipfile
 import undetected_chromedriver as uc
 
-def find_in_shadow(driver, selector):
+def find_in_shadow(driver, selector, root_element=None):
     script = """
     function findInShadowRoots(selector, root = document) {
         // First try regular DOM
@@ -22,9 +22,10 @@ def find_in_shadow(driver, selector):
         }
         return null;
     }
-    return findInShadowRoots(arguments[0]);
+    return findInShadowRoots(arguments[0], arguments[1] || document);
     """
-    return driver.execute_script(script, selector)
+    return driver.execute_script(script, selector, root_element)
+
 
 def get_options(proxy=None):
     options = uc.ChromeOptions()
@@ -37,7 +38,7 @@ def get_options(proxy=None):
 
     if proxy:
         print("proxy is true")
-        if len(proxy) > 2:
+        if len(proxy) > 2: # IF AUTH REQUIRED
             print("proxy length is more than 2")
             ip, port, username, password = proxy
             proxies_extension = proxies(username, password, ip, port)
@@ -48,6 +49,9 @@ def get_options(proxy=None):
             print(extension_path)
             options.add_argument(f'--load-extension={extension_path}')
             #options.add_extension(proxies_extension)
+        else:
+            ip, port = proxy
+            options.add_argument(f'--proxy-server=http://{ip}:{port}')
     else:
         pass
 
@@ -78,6 +82,8 @@ def parse_account(username):
 
 
 def parse_cookies(cookies_str):
+    if cookies_str == "null":
+        return "null"
     if isinstance(cookies_str, str):
         cookies = json.loads(cookies_str)
     else:
@@ -108,6 +114,8 @@ def set_cookies(driver, cookies):
         driver: Selenium WebDriver instance
         cookies: List of cookie dictionaries with 'domain' and other required fields
     """
+    if cookies == "null":
+        return
     def prepare_cookie(cookie):
         """Prepare cookie according to its prefix requirements"""
         cookie_copy = cookie.copy()
@@ -167,3 +175,45 @@ def set_cookies(driver, cookies):
                     except Exception as e2:
                         print(f"Still failed to set {cookie['name']}: {str(e2)}")
 
+def set_cookies_cdp(driver, cookies):
+    # Enable network tracking
+    driver.execute_cdp_cmd('Network.enable', {})
+    
+    for cookie in cookies:
+        # Prepare cookie parameters
+        cookie_params = {
+            'name': cookie['name'],
+            'value': cookie['value'],
+            'path': cookie.get('path', '/'),
+            'secure': cookie.get('secure', True)
+        }
+        
+        # Handle domain
+        domain = cookie['domain']
+        if domain.startswith('.'):
+            cookie_params['domain'] = domain
+        else:
+            cookie_params['domain'] = domain
+            
+        # Handle special cookie prefixes
+        if cookie['name'].startswith('__Host-'):
+            cookie_params['secure'] = True
+            cookie_params['path'] = '/'
+            # For __Host- cookies, we must not include the domain
+            del cookie_params['domain']
+            
+        elif cookie['name'].startswith('__Secure-'):
+            cookie_params['secure'] = True
+            
+        # Optional parameters
+        if 'httpOnly' in cookie:
+            cookie_params['httpOnly'] = cookie['httpOnly']
+        if 'sameSite' in cookie:
+            cookie_params['sameSite'] = cookie['sameSite']
+        if 'expires' in cookie:
+            cookie_params['expires'] = cookie['expires']
+            
+        try:
+            driver.execute_cdp_cmd('Network.setCookie', cookie_params)
+        except Exception as e:
+            print(f"Failed to set cookie {cookie['name']}: {str(e)}")

@@ -5,22 +5,21 @@ from selenium.webdriver.support import expected_conditions as EC
 
 import undetected_chromedriver as  uc
 
-from utils import parse_account, wait, find_in_shadow, get_options 
+from utils import parse_account, set_cookies, wait, find_in_shadow, get_options 
 
 from logger import logger
 
 class RedditBot:
     def __init__(self, username):
         self.cookies, self.proxy, self.username, self.password = parse_account(username)
+        logger.info(f"{username} successfully parsed.")
 
         options = get_options(self.proxy)
         self.driver = uc.Chrome(headless=False, use_subprocess=False, options=options)
     
-    def login_cookies(self):
-        reddit_l = "https://www.reddit.com"
-        self.driver.get(reddit_l)
-        for cookie in self.cookies:
-            self.driver.add_cookie(cookie)
+    def set_cookies(self):
+        set_cookies(self.driver, self.cookies)
+        return
 
     def login_password(self):
         reddit_login_l = "https://www.reddit.com/login/"
@@ -127,6 +126,27 @@ class RedditBot:
             By.XPATH, "//button[@id='inner-post-submit-button']"
         )))
         post_button.click()
+
+    def vote(self, reddit_name, post_id, vote_type, comment_id = None):
+        if comment_id:
+            link = f"https://www.reddit.com/r/{reddit_name}/comments/{post_id}/comment/{comment_id}/"
+        else:
+            link = f"https://www.reddit.com/r/{reddit_name}/comments/{post_id}/"
+
+        self.driver.get(link)
+        wait_10 = wait(self.driver, 10)
+
+        if comment_id:
+            comment = wait_10.until(EC.presence_of_element_located((
+                By.CSS_SELECTOR, "shreddit-comment"
+            )))
+            button = find_in_shadow(self.driver, f'button[{vote_type}]', comment)
+        else:
+            button = find_in_shadow(self.driver, f'button[{vote_type}]')
+
+        button.click()
+
+
 
     
 
