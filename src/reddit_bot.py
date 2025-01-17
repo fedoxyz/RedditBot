@@ -166,14 +166,6 @@ class RedditBot:
             comment = wait_10.until(EC.presence_of_element_located((
                 By.CSS_SELECTOR, "shreddit-comment"
             )))
-            
-            # If comment is hidden then return
-            try:
-                show_hidden = find_in_shadow(self.driver, f'button[rpl]', comment)
-                if show_hidden:
-                    return
-            except:
-                pass
 
             button = find_in_shadow(self.driver, f'button[{vote_type}]', comment)
         else:
@@ -181,15 +173,3 @@ class RedditBot:
 
         button.click()
 
-    def __del__(self):
-        """Clean up resources when bot is destroyed"""
-        try:
-            # Remove driver from queue
-            if hasattr(self, 'driver'):
-                try:
-                    driver_queue.get_nowait()  # Remove our driver from queue
-                except Empty:
-                    pass
-                self.driver.quit()
-        except:
-            pass
