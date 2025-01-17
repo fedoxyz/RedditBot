@@ -44,7 +44,8 @@ class Comment:
             result = self._groq_api.analyze_sentiment(self.content)
             self.sentiment = result
         else:
-            logger.info("The comment is already checked for its sentiment")
+            logger.debug("The comment is already checked for its sentiment")
+            return
 
 class RedditCommentMonitor:
     def __init__(self, reddit_api):
@@ -85,6 +86,17 @@ class RedditCommentMonitor:
                 
                 for reddit_comment in all_comments:
                     comment = Comment.from_reddit_comment(reddit_comment)
+                    
+                    # Check if this comment already exists in the previous comments list
+                    existing_comment = next((
+                        existing for existing in self.comments 
+                        if existing.comment_id == comment.comment_id
+                    ), None)
+                    
+                    if existing_comment:
+                        # Preserve the existing sentiment if the comment was already analyzed
+                        comment.sentiment = existing_comment.sentiment
+                    
                     new_comments.append(comment)
                     new_comment_ids.add(comment.comment_id)
                 
@@ -93,7 +105,7 @@ class RedditCommentMonitor:
                     self.comment_ids = new_comment_ids
                 
                 time.sleep(30)
-                
+            
             except Exception as e:
                 logger.error(f"Monitoring error: {str(e)}")
                 time.sleep(60)

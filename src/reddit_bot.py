@@ -148,7 +148,7 @@ class RedditBot:
         )))
         post_button.click()
 
-    @with_retry(max_retries=3, delay=1.0)
+    @with_retry(max_retries=2, delay=1.0)
     def vote(self, reddit_name, post_id, vote_type, comment_id=None):
         """Thread-safe voting with retry mechanism"""
         if comment_id:
@@ -166,6 +166,15 @@ class RedditBot:
             comment = wait_10.until(EC.presence_of_element_located((
                 By.CSS_SELECTOR, "shreddit-comment"
             )))
+            
+            # If comment is hidden then return
+            try:
+                show_hidden = find_in_shadow(self.driver, f'button[rpl]', comment)
+                if show_hidden:
+                    return
+            except:
+                pass
+
             button = find_in_shadow(self.driver, f'button[{vote_type}]', comment)
         else:
             button = find_in_shadow(self.driver, f'button[{vote_type}]')

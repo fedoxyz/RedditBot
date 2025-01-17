@@ -62,7 +62,6 @@ class VotingSystem:
         self.bots.append(bot)
         logger.debug(f"Added bot {bot.username} to voting system")
 
-    @with_retry(max_retries=3, delay=1.0)
     def process_vote(self, bot, task: VoteTask):
         """Process a vote task for a single bot"""
         try:

@@ -7,7 +7,6 @@ from voting_system import setup_voting_system
 import os
 import sys
 import time
-from control_system import setup_control_system, run_control_system
 from threading_utils import run_in_threads
 
 
@@ -111,8 +110,6 @@ def main():
         for bot in bots:
             voting_system.add_bot(bot)
         
-        control_system = setup_control_system(voting_system, monitor)
-        control_thread = run_control_system(control_system)
         
         try:
             while True:
@@ -121,10 +118,9 @@ def main():
                 
         except KeyboardInterrupt:
             logger.info("Shutting down...")
-            control_system.stop_all()
             
         finally:
-            control_thread.join(timeout=1.0)
+            pass
     
     except Exception as e:
         logger.error(f"Fatal error: {str(e)}")
