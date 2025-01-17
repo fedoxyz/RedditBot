@@ -218,33 +218,3 @@ def set_cookies_cdp(driver, cookies):
         except Exception as e:
             print(f"Failed to set cookie {cookie['name']}: {str(e)}")
 
-def save_voting_history(comment_id: str, bot_username: str):
-    """Save voting record to a file"""
-    history_file = Path("voting_history.json")
-    
-    # Load existing history
-    if history_file.exists():
-        with open(history_file, 'r') as f:
-            history = json.load(f)
-    else:
-        history = {}
-    
-    # Update history
-    if comment_id not in history:
-        history[comment_id] = []
-    history[comment_id].append(bot_username)
-    
-    # Save updated history
-    with open(history_file, 'w') as f:
-        json.dump(history, f)
-
-def has_bot_voted(comment_id: str, bot_username: str) -> bool:
-    """Check if bot has already voted on this comment"""
-    history_file = Path("voting_history.json")
-    
-    if not history_file.exists():
-        return False
-        
-    with open(history_file, 'r') as f:
-        history = json.load(f)
-        return comment_id in history and bot_username in history[comment_id]

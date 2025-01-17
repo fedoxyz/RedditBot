@@ -11,7 +11,7 @@ from selenium.webdriver.support import expected_conditions as EC
 
 import undetected_chromedriver as  uc
 
-from utils import parse_account, parse_cookies, get_options, wait, set_cookies, find_in_shadow, find_in_specific_shadow
+from utils import parse_account, parse_cookies, get_options, wait, set_cookies, find_in_shadow
 
 #from logger import logger
 
@@ -55,6 +55,8 @@ driver.execute_script("""
 # NORMAL BUTTON
 login_button = wait_10.until(EC.visibility_of_element_located((By.TAG_NAME, 'button')))
 login_button.click()
+
+user = wait_10.until(EC.visibility_of_element_located((By.TAG_NAME, 'faceplate-dropdown-menu')))
 
 
 
@@ -109,3 +111,47 @@ monitor = RedditCommentMonitor(reddit_api)
 monitor.start_monitoring("")
 
 monitor.get_comments()
+
+
+
+
+
+
+
+def parse_account(username):
+    file_path = f"../accounts/{username}.txt"
+    with open(file_path, 'r') as f:
+        # Read the first two lines of the file
+        lines = [f.readline().strip() for _ in range(3)]
+        # Assign the cookies and proxy
+        cookies = lines[0]
+        proxy = lines[1]
+        username, password = lines[2].split(":")
+    
+    proxy_parts = proxy.strip().split(':')
+    #ip, port, username, password = proxy_parts
+#    proxy_formatted = f"{username}:{password}@{ip}:{port}"
+
+    return parse_cookies(cookies), proxy_parts, username, password
+
+
+def vote(reddit_name, post_id, vote_type, comment_id = None):
+    if comment_id:
+        link = f"https://www.reddit.com/r/{reddit_name}/comments/{post_id}/comment/{comment_id}/"
+    else:
+        link = f"https://www.reddit.com/r/{reddit_name}/comments/{post_id}/"
+    
+    driver.get(link)
+    wait_10 = wait(driver, 10)
+
+    if comment_id:
+        comment = wait_10.until(EC.presence_of_element_located((
+            By.CSS_SELECTOR, "shreddit-comment"
+        )))
+        button = find_in_shadow(driver, f'button[{vote_type}]', comment)
+    else:
+        button = find_in_shadow(driver, f'button[{vote_type}]')
+
+    button.click()
+
+

@@ -5,3 +5,5 @@ undetected-chromedriver
 colorama
 python-dotenv
 praw
+groq
+readchar

@@ -5,3 +5,5 @@ accounts/*.txt
 *.zip
 proxies_extension
 .env
+voting_history.json
+chrome_data
