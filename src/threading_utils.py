@@ -45,11 +45,15 @@ def with_retry(max_retries: int = 3, delay: float = 1.0) -> Callable:
 def run_in_threads(objects: List[Any], method, synchronize: bool = False, *args, **kwargs):
     """
     Run a method on multiple objects in parallel.
+    Returns list of successful objects.
     """
     if not isinstance(objects, list):
         objects = [objects]
         
     threads = []
+    successful = []
+    failed = []
+    thread_lock = threading.Lock()
     barrier = threading.Barrier(len(objects)) if synchronize else None
     
     def thread_func(obj):
@@ -61,19 +65,30 @@ def run_in_threads(objects: List[Any], method, synchronize: bool = False, *args,
             else:
                 # Direct callable
                 method(obj, *args, **kwargs)
+            
+            with thread_lock:
+                successful.append(obj)
                 
             if synchronize and barrier:
-                barrier.wait()
+                try:
+                    barrier.wait(timeout=30)  # Add timeout to prevent hanging
+                except threading.BrokenBarrierError:
+                    pass  # Ignore barrier errors to allow continued execution
+                
         except Exception as e:
             logger.error(f"Error in thread for {getattr(obj, 'username', 'unknown')}: {str(e)}")
+            with thread_lock:
+                failed.append(obj)
     
     # Start all threads without delay between them
     for obj in objects:
         thread = threading.Thread(target=thread_func, args=(obj,))
-        thread.start()  # Remove sleep delay to allow true parallel start
+        thread.start()
         threads.append(thread)
     
     # Wait for completion if synchronized
     if synchronize:
         for thread in threads:
-            thread.join()
+            thread.join(timeout=30)  # Add timeout to prevent hanging
+    
+    return successful

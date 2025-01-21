@@ -37,16 +37,14 @@ def setup_bots():
             except Exception as e:
                 logger.error(f"Failed to create bot {account_name}: {str(e)}")
                 continue
-
+                
     # Login all bots in parallel
     if bots:
-        run_in_threads(bots, "login_password", synchronize=True)
-        logger.info("Started parallel login for all bots")
+        successful_bots = run_in_threads(bots, "login_password", synchronize=True)
+        logger.info(f"Successfully logged in {len(successful_bots)} bots")
+        return successful_bots
     
-    # Filter out any failed bots
-    active_bots = [bot for bot in bots if hasattr(bot, 'driver')]
-    logger.info(f"Successfully set up {len(active_bots)} bots")
-    return active_bots
+    return []
 
 def get_target_info():
     """Get subreddit and post information from user"""

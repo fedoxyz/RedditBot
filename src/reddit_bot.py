@@ -166,6 +166,14 @@ class RedditBot:
             comment = wait_10.until(EC.presence_of_element_located((
                 By.CSS_SELECTOR, "shreddit-comment"
             )))
+            
+            try:
+                # if comment is hidden
+                show_hidden = find_in_shadow(self.driver, 'button[rpl][class*="text-neutral-content-strong"][class*="button-small"]')
+                show_hidden.click()
+            except:
+                pass
+
 
             button = find_in_shadow(self.driver, f'button[{vote_type}]', comment)
         else:
